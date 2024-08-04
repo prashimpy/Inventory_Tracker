@@ -72,34 +72,42 @@ export default function Home() {
 
   const addItem = async () => {
     try {
-      let imageUrl = null
+      let imageUrl = null;
       if (image) {
-        const imageRef = ref(storage, `images/${uuidv4()}_${image.name}`)
-        await uploadBytes(imageRef, image)
-        imageUrl = await getDownloadURL(imageRef)
+        console.log('Uploading image...');
+        const imageRef = ref(storage, `images/${uuidv4()}_${image.name}`);
+        await uploadBytes(imageRef, image);
+        imageUrl = await getDownloadURL(imageRef);
+        console.log('Image uploaded successfully:', imageUrl);
       }
-
-      const docRef = doc(collection(firestore, 'inventory'), itemName)
-      await setDoc(docRef, {
+  
+      const newItem = {
+        name: itemName,
         quantity: 1,
         category,
         description,
         price,
         supplier,
-        imageUrl
-      })
-      await updateInventory()
-      setItemName('')
-      setCategory('')
-      setDescription('')
-      setPrice('')
-      setSupplier('')
-      setImage(null)
-      handleClose()
+        imageUrl,
+      };
+  
+      console.log('Adding new item to Firestore:', newItem);
+      const docRef = doc(collection(firestore, 'inventory'), uuidv4());
+      await setDoc(docRef, newItem);
+  
+      setInventory((prevInventory) => [...prevInventory, { id: docRef.id, ...newItem }]);
+      setItemName('');
+      setCategory('');
+      setDescription('');
+      setPrice('');
+      setSupplier('');
+      setImage(null);
+      handleClose();
     } catch (error) {
-      console.error('Error adding item:', error)
+      console.error('Error adding item:', error);
     }
-  }
+  };
+  
 
   const removeItem = async (id) => {
     try {
